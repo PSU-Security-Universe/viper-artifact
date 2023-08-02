@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<OrzHTTPd>
+    <Settings>
+	<Item name="User" type="string">zedd</Item>
+	<Item name="Port" type="numeric">8080</Item>
+	<Item name="Host" type="string">127.0.0.1</Item>
+	<Item name="Document Root" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk</Item>
+    <Item name="Virtual Host Root" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk</Item>
+    <Item name="Error Messages" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk/error</Item>
+    <Item name="Index File" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk/index.html</Item>
+    <Item name="User Directory" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk/public_html</Item>
+    <Item name="Access Log" type="string">/home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk/orzhttpd.access.log</Item>
+    <Item name="Error Log" type="string">//home/zedd/vital-data-hunter/hunter/source/orzhttpd/orzhttpd/trunk/orzhttpd.error.log</Item>
+	<Item name="Login Password" type="string">orzhttpd:orzhttpd</Item>
+    </Settings>
+    <Features>
+	<Option name="User Home Directories">on</Option>
+	<Option name="Directory Listing">on</Option>
+	<Option name="Logging">on</Option>
+	<Option name="Custom Error Messages">on</Option>
+	<Option name="Virtual Hosts">off</Option>
+	<Option name="Chroot">on</Option>
+    </Features>
+</OrzHTTPd>
+

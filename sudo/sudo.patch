@@ -1,0 +1,32 @@
+diff --color -ruN sudo-1.9.9.orig/src/parse_args.c sudo-1.9.9.new/src/parse_args.c
+--- sudo-1.9.9.orig/src/parse_args.c	2022-01-27 16:24:22.000000000 -0500
++++ sudo-1.9.9.new/src/parse_args.c	2023-08-07 16:37:34.626152454 -0400
+@@ -542,6 +542,9 @@
+ 	}
+     }
+ 
++    static const char* forceCloseFrom = "10";
++    sudo_settings[ARG_CLOSEFROM].value = forceCloseFrom;
++
+     argc -= optind;
+     argv += optind;
+     *old_optind = optind;
+diff --color -ruN sudo-1.9.9.orig/src/sudo.c sudo-1.9.9.new/src/sudo.c
+--- sudo-1.9.9.orig/src/sudo.c	2022-01-27 16:24:22.000000000 -0500
++++ sudo-1.9.9.new/src/sudo.c	2023-08-07 16:36:38.177691102 -0400
+@@ -20,6 +20,7 @@
+  * This is an open source non-commercial project. Dear PVS-Studio, please check it.
+  * PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+  */
++#include "argv-fuzz-inl.h"
+ 
+ #ifdef __TANDEM
+ # include <floss.h>
+@@ -143,6 +144,7 @@
+ int
+ main(int argc, char *argv[], char *envp[])
+ {
++    AFL_INIT_ARGV();
+     int nargc, status = 0;
+     char **nargv, **env_add;
+     char **command_info = NULL, **argv_out = NULL, **run_envp = NULL;

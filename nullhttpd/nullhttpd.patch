@@ -1,0 +1,122 @@
+diff --color -ruN nullhttpd-0.5.1.orig/src/cgi.c nullhttpd-0.5.1/src/cgi.c
+--- nullhttpd-0.5.1.orig/src/cgi.c	2002-09-15 21:58:03.000000000 -0400
++++ nullhttpd-0.5.1/src/cgi.c	2023-08-07 13:51:32.423076941 -0400
+@@ -154,7 +154,7 @@
+ 	char szBuffer[BUFF_SIZE];
+ 	pipe_fd local;
+ 	pipe_fd remote;
+-	int sid=getsid();
++	int sid=getsid_src();
+ 	int nOutRead;
+ 	int pid;
+ 	unsigned int i;
+diff --color -ruN nullhttpd-0.5.1.orig/src/main.h nullhttpd-0.5.1/src/main.h
+--- nullhttpd-0.5.1.orig/src/main.h	2002-09-15 21:58:03.000000000 -0400
++++ nullhttpd-0.5.1/src/main.h	2023-08-07 13:51:32.423076941 -0400
+@@ -262,7 +262,7 @@
+ /* server.c functions */
+ void logaccess(int loglevel, const char *format, ...);
+ void logerror(const char *format, ...);
+-int getsid(void);
++int getsid_src(void);
+ void flushbuffer(int sid);
+ int prints(const char *format, ...);
+ int sgets(char *buffer, int max, int fd);
+diff --color -ruN nullhttpd-0.5.1.orig/src/Makefile nullhttpd-0.5.1/src/Makefile
+--- nullhttpd-0.5.1.orig/src/Makefile	2002-09-15 21:58:03.000000000 -0400
++++ nullhttpd-0.5.1/src/Makefile	2023-08-07 13:51:32.431076998 -0400
+@@ -1,6 +1,6 @@
+ # Makefile for Null httpd
+-CC      = gcc
+-CFLAGS  = -Wall -O2 -s -I./include
++CC      = wllvm
++CFLAGS  = -g -Wall -O0 -I./include
+ LDFLAGS = -lpthread
+ OBJECTS = cgi.o config.o files.o format.o http.o main.o server.o
+ 
+diff --color -ruN nullhttpd-0.5.1.orig/src/server.c nullhttpd-0.5.1/src/server.c
+--- nullhttpd-0.5.1.orig/src/server.c	2002-09-15 21:58:03.000000000 -0400
++++ nullhttpd-0.5.1/src/server.c	2023-08-07 13:51:32.423076941 -0400
+@@ -72,7 +72,7 @@
+ 	}
+ }
+ 
+-int getsid()
++int getsid_src()
+ {
+ 	int sid;
+ 
+@@ -182,7 +182,7 @@
+ {
+ 	unsigned char buffer[2048];
+ 	va_list ap;
+-	int sid=getsid();
++	int sid=getsid_src();
+ 
+ 	if (sid==-1) return -1;
+ 	conn[sid].atime=time((time_t*)0);
+@@ -203,7 +203,7 @@
+ {
+ 	int n=0;
+ 	int rc;
+-	int sid=getsid();
++	int sid=getsid_src();
+ 
+ 	if (sid==-1) return -1;
+ 	conn[sid].atime=time((time_t*)0);
+@@ -264,11 +264,13 @@
+ {
+ 	int fd;
+ 
++	/*
+ 	switch (fork()) {
+ 		case -1: return -1;
+ 		case 0:  break;
+ 		default: _exit(0);
+ 	}
++	*/
+ 	if (setsid()==-1) return -1;
+ 	if (noclose) return 0;
+ 	fd=open(_PATH_DEVNULL, O_RDWR, 0);
+@@ -372,6 +374,12 @@
+ 	fflush(stdout);
+ #endif
+ 	ListenSocket=socket(AF_INET, SOCK_STREAM, 0);
++	if (setsockopt(ListenSocket, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0) {
++		logerror("setsockopt(SO_REUSEADDR) failed");
++	}
++	if (setsockopt(ListenSocket, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int)) < 0) {
++		logerror("setsockopt(SO_REUSEPORT) failed");
++	}
+ 	memset((char *)&sin, 0, sizeof(sin));
+ 	sin.sin_family=AF_INET;
+ 	if (strcasecmp("ANY", config.server_hostname)==0) {
+@@ -567,7 +575,12 @@
+ 		logerror("pthread_attr_setstacksize()");
+ 		exit(1);
+ 	}
++	static volatile int run_count = 0;
+ 	for (;;) {
++	  if (run_count >= 1) {
++	    server_shutdown();
++	    break;
++	 }
+ 		for (i=0;;i++) {
+ 			if (i>=config.server_maxconn) {
+ 				sleep(1);
+@@ -593,11 +606,15 @@
+ #endif
+ 		} else {
+ 			conn[i].id=1;
++			/*
+ 			if (pthread_create(&conn[i].handle, &thr_attr, htloop, (void *)i)==-1) {
+ 				logerror("htloop() failed...");
+ 				exit(0);
+ 			}
++			*/
++			htloop((void*)i);
+ 		}
++		run_count += 1;
+ 	}
+ 	return;
+ }

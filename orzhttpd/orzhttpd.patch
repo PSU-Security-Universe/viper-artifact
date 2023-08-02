@@ -1,0 +1,85 @@
+diff --color -ruN orzhttpd.orig/trunk/Makefile orzhttpd.new/trunk/Makefile
+--- orzhttpd.orig/trunk/Makefile	2016-03-17 20:42:47.000000000 -0400
++++ orzhttpd.new/trunk/Makefile	2023-08-07 12:04:40.270626618 -0400
+@@ -1,11 +1,11 @@
+ # $Id: Makefile 140 2008-12-09 13:26:55Z byshen $
+ 
+-CC?=	gcc
++CC?=	wllvm
+ 
+-CFLAGS+=	-Os -Wall -pipe $(OS_FLAGS) \
++CFLAGS+=	-g -Os -Wall -pipe $(OS_FLAGS) \
+ 		-I/usr/local/include -L/usr/local/lib
+ 
+-LDFLAGS+=	-s -levent -lexpat -lssl
++LDFLAGS+=	-g -s -levent -lexpat -lssl
+ 
+ SRC =	main.c orzhttpd.c method.c header.c http_version.c \
+ 	status.c mimetype.c dirlist.c sendfile.c stuff.c log.c \
+diff --color -ruN orzhttpd.orig/trunk/orzhttpd.c orzhttpd.new/trunk/orzhttpd.c
+--- orzhttpd.orig/trunk/orzhttpd.c	2016-03-17 20:42:47.000000000 -0400
++++ orzhttpd.new/trunk/orzhttpd.c	2023-08-07 12:04:40.270626618 -0400
+@@ -176,20 +176,20 @@
+ 
+     conn_lazy_init(&conn);
+ 
+-    for (;;)
+-    {
++    // for (;;)
++    // {
+ 	conn.fd = accept(sock, (struct sockaddr *)&conn.cin, &server->salen);
+ 
+-	if (fork() == 0)
+-	{
++	// if (fork() == 0)
++	// {
+ 	    close(sock);
+ 
+ 	    http_state_machine(&conn);
+ 
+ 	    exit(0);
+-	}
++	// }
+ 	close(conn.fd);
+-    }
++    // }
+ }
+ #endif
+ 
+@@ -330,8 +330,9 @@
+ 	return;
+ #endif
+ 
+-    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&on, sizeof(on));
++    // setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&on, sizeof(on));
+     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
++    setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&on, sizeof(on));
+ 
+     linger.l_onoff = 1;
+     linger.l_linger = 5;
+diff --color -ruN orzhttpd.orig/trunk/orzhttpd.h orzhttpd.new/trunk/orzhttpd.h
+--- orzhttpd.orig/trunk/orzhttpd.h	2016-03-17 20:42:47.000000000 -0400
++++ orzhttpd.new/trunk/orzhttpd.h	2023-08-07 12:04:40.270626618 -0400
+@@ -38,8 +38,8 @@
+ #include "queue.h"
+ #include "tree.h"
+ 
+-#define	HTTPD_EVENT
+-#undef	HTTPD_FORK
++#define	HTTPD_FORK
++#undef	HTTPD_EVENT
+ 
+ #ifndef	HTTPD_FORK
+ #define	USE_ALARM_TIME
+diff --color -ruN orzhttpd.orig/trunk/sendfile.c orzhttpd.new/trunk/sendfile.c
+--- orzhttpd.orig/trunk/sendfile.c	2016-03-17 20:42:47.000000000 -0400
++++ orzhttpd.new/trunk/sendfile.c	2023-08-07 12:04:40.270626618 -0400
+@@ -41,7 +41,7 @@
+ #ifdef	Linux
+ #include <sys/sendfile.h>
+ 
+-inline HTTP_STATE_t
++// inline HTTP_STATE_t
+ linux_sendfile(CONN_t *conn)
+ {
+     int corked = 1;
