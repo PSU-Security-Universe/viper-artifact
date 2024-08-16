@@ -24,3 +24,8 @@ We provide scripts (`build.sh`) to automatically test most programs (including b
 > NOTE: some programs require special handling so it's better to follow the instructions listed in `build.sh` and run the commands one by one. 
 * for branch flipping, the result is located at `log/flip_result`.
 * for corruptibility assessment, the result is located in `dot/` folder.
+
+## Acknowledgment
+
+We thank National Science Foundation (NSF) for supporting our work.
+This research is supported by NSF under grant CNS-2247652.
